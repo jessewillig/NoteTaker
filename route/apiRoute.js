@@ -1,59 +1,29 @@
-const express = require("express");
-const app = express.Router();
-const path = require("path");
-const fs = require("fs");
-const { v4: uuidv4 } = require("uuid");
-const { json, response } = require("express");
+const storage = require("../db/storage");
+const router = require("express").Router();
 
-module.exports = (app) => {
-  app.get("/api/notes", (req, res) => {
-    fs.readFile(path.join(__dirname, "../db/db.json"), "utf-8", (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
-        const parseNote = JSON.parse(data);
-        res.send(parseNote);
-      }
-    });
-  });
+// a get route for notes in our internal api
+router.get("/notes", (req, res) => {
+storage 
+.getNotes()
+.then((notes) => {
+  return res.json(notes);
+}).catch((err) => res.status(500).json(err));
+});
 
-  app.post("/api/notes", (req, res) => {
-    const newNote = req.body;
-    newNote.id = uuidv4();
-    fs.readFile(path.join(__dirname, "../db/db.json"), "utf-8", (err, data) => {
-      const parseNote = JSON.parse(data);
-      const mergeNote = [...parseNote, newNote];
-      const userNote = JSON.stringify(mergeNote);
-      fs.watchFile(
-        path.join(__dirname, "../db/db.json"),
-        userNote,
-        (err, response) => {
-          if (err) throw err;
-          res.json({ ok: true });
-        }
-      );
-    });
-  });
+// post route for notes
+router.post("/notes", (req, res) => {
+storage
+.addNote(req.body)
+.then((note) => res.json(note))
+.catch((err) => res.status(500).json(err))
+});
 
-  app.delete("/api/notes/:id", (req, res) => {
-    fs.readFile(path.join(__dirname, "../db/db.json"), "utf8", (err, data) => {
-      if (err) throw err;
-      let userNote = [];
-      data = JSON.parse(data);
-      for (i = 0; i < data.length; i++) {
-        if (data[i].id !== req.params.id) {
-          userNote.push(data[i]);
-        }
-      }
-      userNote = JSON.stringify(userNote);
-      fs.watchFile(
-        path.join(__dirname, "../db/db.json"),
-        userNote,
-        (err, response) => {
-          if (err) throw err;
-          res.json({ ok: true });
-        }
-      );
-    });
-  });
-};
+router.delete("/notes/:id", (req, res) => {
+  storage
+  .removeNote(req.params.id)
+  .then(() => res.json({ ok: true}))
+  .catch((err) => res.status(500).json(err))
+
+});
+
+module.exports = router;
