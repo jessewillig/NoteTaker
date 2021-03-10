@@ -1,4 +1,4 @@
-# noteTaker
+# NoteTaker
 
 ## Description
 The reason for developing this app is to easily add, edit and even delete unwanted notes. Keep your TO-DOs organized and ditch the sticky note and pen (even though Monica says there should always be a pen and pad by the phone)... because, who has a pen when you need one? 
